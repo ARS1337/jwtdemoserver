@@ -1,0 +1,6 @@
+{
+	"hello": "Hallo",
+	"login failed":"Fehler bei der Anmeldung",
+	"login success":"Einloggen erfolgreich",
+	"wrong password":"falsches Passwort"
+}

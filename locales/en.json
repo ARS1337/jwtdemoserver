@@ -1,0 +1,6 @@
+{
+	"hello": "hello",
+	"login failed":"Login Failed",
+	"login success":"Login Success",
+	"wrong password":"Wrong Password"
+}

@@ -1,0 +1,6 @@
+{
+    "hello":"नमस्ते",
+    "login failed":"लॉगिन विफल",
+	"login success":"लॉगिन सफल",
+	"wrong password":"गलत पासवर्ड"
+}
