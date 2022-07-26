@@ -4,7 +4,7 @@ const jwtAuthenticate = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   let data = { success: 0 };
-  req.jwtAuthentication = data;
+  res.locals.jwtAuthentication = data;
 
   if (token == null) {
     data.status = 401;
@@ -22,7 +22,7 @@ const jwtAuthenticate = (req, res, next) => {
     data.user = user;
     data.success = 1;
   });
-  req.jwtAuthentication = data;
+  res.locals.jwtAuthentication = data;
   next();
 };
 

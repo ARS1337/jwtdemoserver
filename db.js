@@ -12,12 +12,31 @@ const connect = () => {
   });
 };
 
-const getUser = async (user) => {
+const runQuery = async (query) => {
   let res = await pool
-    .query(`select * from user_data where username='${user}' limit 1`)
+    .query(query)
     .then((r) => r)
-    .catch((err) => console.log(err));
+    .catch((err) => console.log("error for query : ", query));
   return res;
 };
 
-module.exports = { connect, getUser };
+const getUser = async (email) => {
+  let query = `select * from user_data_new where email='${email}' limit 1`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const addUser = async (first_name, last_name, email, password) => {
+  let query = `insert into user_data_new (first_name,last_name,email,password) values('${first_name}','${last_name}','${email}','${password}') returning id`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const resetPassword = async (newPassword, telno) => {
+  let query = `update user_data_new set password='${newPassword}' where telno='${telno}' returning id`;
+  let res = await runQuery(query);
+  return res;
+};
+
+
+module.exports = { connect, getUser, addUser,resetPassword };
