@@ -1,6 +1,6 @@
 const express = require("express");
 const Router = express.Router();
-const { getUser, addUser, resetPassword } = require("../db.js");
+const { getUser, addUser, resetPassword, changePassword } = require("../db.js");
 const i18n = require("../i18n.js");
 const jwt = require("jsonwebtoken");
 const {
@@ -10,6 +10,7 @@ const {
   doesUserExistSchema,
   saveNumberSchema,
   checkOtpSchema,
+  changePasswordSchema,
 } = require("../validationSchemas/authApisSchemas");
 const validator = require("../middlewares/validator");
 
@@ -44,6 +45,11 @@ const addDoesUserExistsSchema = (req, res, next) => {
 
 const addResetPasswordSchema = (req, res, next) => {
   res.locals.schema = resetPasswordSchema;
+  next();
+};
+
+const addChangePasswordSchema = (req, res, next) => {
+  res.locals.schema = changePasswordSchema;
   next();
 };
 
@@ -185,6 +191,46 @@ Router.post(
       } else {
         data.success = 0;
         data.msg = "Passwords do not match";
+      }
+      res.json(data);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
+
+Router.post(
+  "/changePassword",
+  addChangePasswordSchema,
+  validator,
+  async (req, res) => {
+    try {
+      let email = req.body.email;
+      let password = req.body.password;
+      let newPassword = req.body.newPassword;
+      let data = {};
+      data.success = 0;
+      let userDetails = await getUser(email);
+      let userData;
+      if (userDetails && userDetails?.rows) {
+        userData = userDetails?.rows[0];
+        if (email !== userData.email) {
+          data.msg = "Email doesn't match";
+        } else if (userData.password !== password) {
+          data.msg = "Please Enter your correct password";
+        } else {
+          let updateResult = await changePassword(newPassword, email);
+          if (updateResult && updateResult?.rows[0]) {
+            console.log(updateResult?.rows[0].id);
+            data.success = 1;
+            data.msg = "Password updated successfully";
+          } else {
+            data.msg = "An error occurred, please try later";
+          }
+        }
+      } else {
+        data.msg = "User not found";
       }
       res.json(data);
     } catch (err) {
