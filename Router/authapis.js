@@ -135,12 +135,16 @@ Router.post(
   addSaveNumberSchema,
   validator,
   async (req, res) => {
-    req.session.telno = req.body.telno;
-    let otp = Math.floor(100000 + Math.random() * 900000)
-    console.log('otp: ',otp)
-    req.session.otp = otp
-    console.log('session otp set to ',req.session.otp)
-    res.json({ success: 1 });
+    try {
+      req.session.telno = req.body.telno;
+      let otp = Math.floor(100000 + Math.random() * 900000);
+      req.session.otp = otp;
+      console.log("otp is : ", otp);
+      res.json({ success: 1 });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
   }
 );
 
@@ -149,10 +153,15 @@ Router.post(
   addCheckOtpSchema,
   validator,
   async (req, res) => {
-    let receivedOtp = req.body.otp;
-    console.log('session otp ',req.session.otp)
-    if (receivedOtp === req.session.otp) res.json({ success: 1 });
-    else res.json({ success: 0, msg: "OTP didn't match" });
+    try {
+      let receivedOtp = req.body.otp;
+      if (String(receivedOtp) === String(req.session.otp))
+        res.json({ success: 1 });
+      else res.json({ success: 0, msg: "OTP didn't match" });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
   }
 );
 
@@ -161,15 +170,27 @@ Router.post(
   addResetPasswordSchema,
   validator,
   async (req, res) => {
-    let telno = req.session.telno;
-    let password = req.body.password;
-    let data = {};
-    data.success = 0;
-    let result = await resetPassword(password, telno);
-    if (result && result?.rows[0]) {
-      data.success = 1;
+    try {
+      let telno = req.session.telno;
+      let password = req.body.password;
+      let confirmPassword = req.body.confirmPassword;
+      let data = {};
+      if (password === confirmPassword) {
+        data.success = 0;
+        console.log("setting new password to : ", password);
+        let result = await resetPassword(password, telno);
+        if (result && result?.rows[0]) {
+          data.success = 1;
+        }
+      } else {
+        data.success = 0;
+        data.msg = "Passwords do not match";
+      }
+      res.json(data);
+    } catch (err) {
+      console.log(err);
+      next(err);
     }
-    res.json(data);
   }
 );
 

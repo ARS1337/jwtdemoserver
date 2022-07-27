@@ -33,7 +33,7 @@ const checkOtpSchema = Joi.object({
 
 const resetPasswordSchema = Joi.object({
   password: Joi.string().required().min(8).max(30),
-  confirmPassword: Joi.ref("password"),
+  confirmPassword: Joi.string().required().min(8).max(30),
 });
 
 module.exports = {

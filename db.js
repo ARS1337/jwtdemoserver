@@ -38,5 +38,10 @@ const resetPassword = async (newPassword, telno) => {
   return res;
 };
 
+const changePassword = async (newPassword, email) => {
+  let query = `update user_data_new set password = '${newPassword}' where email='${email}' returning id`;
+  let res = await runQuery(query);
+  return res;
+};
 
-module.exports = { connect, getUser, addUser,resetPassword };
+module.exports = { connect, getUser, addUser, resetPassword, changePassword };
