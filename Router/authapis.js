@@ -100,7 +100,7 @@ Router.post(
       let email = req.body.email;
       let data = {};
       let userExists = await getUser(email);
-      if (userExists && userExits?.rows[0]) {
+      if (userExists && userExists?.rows[0]) {
         data.success = 0;
         data.msg = "user already exists";
       } else {
@@ -121,14 +121,20 @@ Router.post("/login", addLoginSchema, validator, async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
     let data = {};
+    data.success = 0;
     let userExits = await getUser(email);
-    if (userExits && userExits?.rows[0]?.password === password) {
-      data.token = generateAccessToken({ user: email });
-      data.success = 1;
-      data.msg = req.session.translate("login success");
+    if (userExits && userExits?.rows && userExits?.rows?.length > 0) {
+      if (userExits && userExits?.rows[0].email != email) {
+        data.msg = req.session.translate("User doesn't exits");
+      } else if (userExits && userExits?.rows[0].password != password) {
+        data.msg = req.session.translate("Wrong password");
+      } else {
+        data.token = generateAccessToken({ user: email });
+        data.success=1
+        data.msg = req.session.translate("login success");
+      }
     } else {
-      data.success = 0;
-      data.msg = req.session.translate("login failed");
+      data.msg = req.session.translate("User doesn't exits");
     }
     res.json(data || {});
   } catch (err) {
