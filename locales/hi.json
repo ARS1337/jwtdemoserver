@@ -1,6 +1,19 @@
 {
-    "hello":"नमस्ते",
-    "login failed":"लॉगिन विफल",
-	"login success":"लॉगिन सफल",
-	"wrong password":"गलत पासवर्ड"
+  "hello": "नमस्ते",
+  "login failed": "लॉगिन विफल",
+  "login success": "लॉगिन सफल",
+  "wrong password": "गलत पासवर्ड",
+  "User doesn't exits": "गलत यूसर्नेम",
+  "Please accept privacy policy": "कृपया गोपनीयता नीति स्वीकार करें",
+  "User already exists. Try different email": "यूसर्नेम पहले से मौजूद है। अलग ईमेल का उपयोग करें",
+  "User added successfully!": "यूसर्नेम सफलतापूर्वक शामिल हुआ",
+  "Error Occurred, please try later": "कृपया बाद में प्रयास करें",
+  "user already exists": "यूसर्नेम पहले से मौजूद है",
+  "username available": "यूसर्नेम उपलब्ध है",
+  "OTP didn't match": "गलत ओटीपी",
+  "Passwords do not match": "पासवर्ड मेल नहीं खाते",
+  "Email doesn't match": "गलत ईमेल",
+  "Please Enter your correct password": "कृपया अपना सही पासवर्ड दर्ज करें",
+  "Password updated successfully": "पासवर्ड सफलतापूर्वक अपडेट किया गया।",
+  "User not found": "यूसर्नेम नहीं मिला"
 }

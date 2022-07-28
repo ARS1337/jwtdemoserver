@@ -2,5 +2,17 @@
 	"hello": "hello",
 	"login failed":"Login Failed",
 	"login success":"Login Success",
-	"wrong password":"Wrong Password"
+	"wrong password":"Wrong Password",
+	"Please accept privacy policy":"Please accept privacy policy",
+    "User already exists. Try different email":"User already exists. Try different email",
+    "User added successfully!":"User added successfully!",
+    "Error Occurred, please try later":"Error Occurred, please try later",
+    "user already exists":"User already exists",
+    "username available":"Username available",
+    "OTP didn't match":"OTP didn't match",
+    "Passwords do not match":"Passwords do not match",
+    "Email doesn't match":"Email doesn't match",
+    "Please Enter your correct password":"Please Enter your correct password",
+    "Password updated successfully":"Password updated successfully",
+    "User not found":"User not found"
 }

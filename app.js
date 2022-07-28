@@ -11,6 +11,7 @@ const protectedRouter = require("./Router/protectedapis");
 const connectionDetails = require("./pgDBconnectionDetails");
 const authApisRouter = require("./Router/authapis");
 const { default: helmet } = require("helmet");
+const translator = require("./middlewares/translator.js");
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ const pgPool = new pg.Pool(connectionDetails);
 
 app.use(
   session({
-    secret: "secret key",
+    secret: process.env.secretKey,
     store: new pgSession({
       pool: pgPool,
       tableName: "user_session",
@@ -32,6 +33,7 @@ app.use(
     },
     saveUninitialized: true,
     secure: false,
+    name:"anotherNumber"
   })
 );
 app.use(
@@ -43,6 +45,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+//translator middleware
+app.use(translator)
+
 
 app.get("/", (req, res) => {
   res.send("welcome");
@@ -53,12 +58,12 @@ app.use("/auth", authApisRouter);
 app.use("/protectedRoute", protectedRouter);
 
 app.use((req, res, next) => {
-  res.status(404).send("Sorry can't find that!")
+  res.status(404).send({success:0,msg:"Sorry can't find that!"})
 })
 
 app.use((err, req, res, next) => {
   console.error(err.stack)
-  res.status(500).send('Something broke!')
+  res.status(500).send({success:0,msg:'Something broke!'})
 })
 
 app.listen(3001, async (req, res) => {
