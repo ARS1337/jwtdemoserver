@@ -48,10 +48,7 @@ const addResetPasswordSchema = (req, res, next) => {
   next();
 };
 
-const addChangePasswordSchema = (req, res, next) => {
-  res.locals.schema = changePasswordSchema;
-  next();
-};
+
 
 Router.post(
   "/createAccount",
@@ -68,20 +65,23 @@ Router.post(
       let userExits = await getUser(email);
       if (!policyAccepted) {
         let data = {};
-        (data.success = 1), (data.msg = "Please accept privacy policy");
+        data.success = 1;
+        data.msg = res.locals.translate("Please accept privacy policy");
         res.json(data);
       }
       if (userExits && userExits?.rows[0]) {
         data.success = 0;
-        data.msg = "User already exists. Try different email.";
+        data.msg = res.locals.translate(
+          "User already exists. Try different email"
+        );
       } else {
         let isUserAdded = await addUser(first_name, last_name, email, password);
         if (isUserAdded.rows[0].id) {
           data.success = 1;
-          data.msg = "User added successfully!";
+          data.msg = res.locals.translate("User added successfully!");
         } else {
           data.success = 0;
-          data.msg = "Error Occurred, please try later.";
+          data.msg = res.locals.translate("Error Occurred, please try later");
         }
       }
       res.json(data || {});
@@ -102,10 +102,10 @@ Router.post(
       let userExists = await getUser(email);
       if (userExists && userExists?.rows[0]) {
         data.success = 0;
-        data.msg = "user already exists";
+        data.msg = res.locals.translate("user already exists");
       } else {
         data.success = 1;
-        data.msg = "username available";
+        data.msg = res.locals.translate("username available");
       }
       res.send(data || {});
     } catch (err) {
@@ -116,8 +116,6 @@ Router.post(
 
 Router.post("/login", addLoginSchema, validator, async (req, res, next) => {
   try {
-    const receivedLanguages = req.acceptsLanguages() || "en";
-    req.session.translate = i18n(receivedLanguages[0]);
     const email = req.body.email;
     const password = req.body.password;
     let data = {};
@@ -125,16 +123,16 @@ Router.post("/login", addLoginSchema, validator, async (req, res, next) => {
     let userExits = await getUser(email);
     if (userExits && userExits?.rows && userExits?.rows?.length > 0) {
       if (userExits && userExits?.rows[0].email != email) {
-        data.msg = req.session.translate("User doesn't exits");
+        data.msg = res.locals.translate("User not found");
       } else if (userExits && userExits?.rows[0].password != password) {
-        data.msg = req.session.translate("Wrong password");
+        data.msg = res.locals.translate("wrong password");
       } else {
         data.token = generateAccessToken({ user: email });
-        data.success=1
-        data.msg = req.session.translate("login success");
+        data.success = 1;
+        data.msg = res.locals.translate("login success");
       }
     } else {
-      data.msg = req.session.translate("User doesn't exits");
+      data.msg = res.locals.translate("User not found");
     }
     res.json(data || {});
   } catch (err) {
@@ -169,7 +167,8 @@ Router.post(
       let receivedOtp = req.body.otp;
       if (String(receivedOtp) === String(req.session.otp))
         res.json({ success: 1 });
-      else res.json({ success: 0, msg: "OTP didn't match" });
+      else
+        res.json({ success: 0, msg: res.locals.translate("OTP didn't match") });
     } catch (err) {
       console.log(err);
       next(err);
@@ -189,54 +188,13 @@ Router.post(
       let data = {};
       if (password === confirmPassword) {
         data.success = 0;
-        console.log("setting new password to : ", password);
         let result = await resetPassword(password, telno);
         if (result && result?.rows[0]) {
           data.success = 1;
         }
       } else {
         data.success = 0;
-        data.msg = "Passwords do not match";
-      }
-      res.json(data);
-    } catch (err) {
-      console.log(err);
-      next(err);
-    }
-  }
-);
-
-Router.post(
-  "/changePassword",
-  addChangePasswordSchema,
-  validator,
-  async (req, res) => {
-    try {
-      let email = req.body.email;
-      let password = req.body.password;
-      let newPassword = req.body.newPassword;
-      let data = {};
-      data.success = 0;
-      let userDetails = await getUser(email);
-      let userData;
-      if (userDetails && userDetails?.rows) {
-        userData = userDetails?.rows[0];
-        if (email !== userData.email) {
-          data.msg = "Email doesn't match";
-        } else if (userData.password !== password) {
-          data.msg = "Please Enter your correct password";
-        } else {
-          let updateResult = await changePassword(newPassword, email);
-          if (updateResult && updateResult?.rows[0]) {
-            console.log(updateResult?.rows[0].id);
-            data.success = 1;
-            data.msg = "Password updated successfully";
-          } else {
-            data.msg = "An error occurred, please try later";
-          }
-        }
-      } else {
-        data.msg = "User not found";
+        data.msg = res.locals.translate("Passwords do not match");
       }
       res.json(data);
     } catch (err) {

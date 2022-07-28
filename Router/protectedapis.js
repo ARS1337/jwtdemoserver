@@ -1,27 +1,92 @@
 const express = require("express");
+const { getUser, changePassword } = require("../db");
 const jwtAuthenticate = require("../middlewares/jwtAuthenticate");
+const validator = require("../middlewares/validator");
 const Router = express.Router();
+const {
+  createAccountSchema,
+  loginSchema,
+  resetPasswordSchema,
+  doesUserExistSchema,
+  saveNumberSchema,
+  checkOtpSchema,
+  changePasswordSchema,
+} = require("../validationSchemas/authApisSchemas");
 
 Router.use(jwtAuthenticate);
 
 Router.use((req, res, next) => {
   if (res.locals.jwtAuthentication.success == 1) {
-    next()
+    next();
+  } else if (res.locals.jwtAuthentication.status != 200) {
+    res
+      .status(res.locals.jwtAuthentication.status)
+      .json({ success: 0, msg: res.locals.jwtAuthentication });
   } else {
     res
       .status(res.locals.jwtAuthentication.status)
-      .json({ success: 0, message: "please login first" });
+      .json({ success: 0, msg: "Bad token" });
   }
 });
 
+const addChangePasswordSchema = (req, res, next) => {
+  res.locals.schema = changePasswordSchema;
+  next();
+};
+
 Router.post("/", (req, res) => {
-  if (res.locals.jwtAuthentication.success == 1)
+  try {
+    if (res.locals.jwtAuthentication.success == 1)
       res.status(res.locals.jwtAuthentication.status).json({ success: 1 });
-    else res.status(res.locals.jwtAuthentication.status).json({ success: 0 });
+    else
+      res
+        .status(res.locals.jwtAuthentication.status)
+        .json({ success: 0, data: res.locals.jwtAuthentication });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
 });
 
-Router.get("/test", (req, res) => {
-  res.send("protected route test");
-});
+Router.post(
+  "/changePassword",
+  addChangePasswordSchema,
+  validator,
+  async (req, res, next) => {
+    try {
+      let email = req.body.email;
+      let password = req.body.password;
+      let newPassword = req.body.newPassword;
+      let data = {};
+      data.success = 0;
+      let userDetails = await getUser(email);
+      let userData;
+      if (userDetails && userDetails?.rows) {
+        userData = userDetails?.rows[0];
+        if (email !== userData.email) {
+          data.msg = res.locals.translate("Email doesn't match");
+        } else if (userData.password !== password) {
+          data.msg = res.locals.translate("Please Enter your correct password");
+        } else {
+          let updateResult = await changePassword(newPassword, email);
+          if (updateResult && updateResult?.rows[0]) {
+            console.log(updateResult?.rows[0].id);
+            data.success = 1;
+            data.msg = res.locals.translate("Password updated successfully");
+            //check session store and remove all the sessions of this email excluding the one with same session id
+          } else {
+            data.msg = res.locals.translate("Error Occurred, please try later");
+          }
+        }
+      } else {
+        data.msg = res.locals.translate("User not found");
+      }
+      res.json(data);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
 
 module.exports = Router;
