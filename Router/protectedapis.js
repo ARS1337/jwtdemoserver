@@ -1,7 +1,14 @@
 const express = require("express");
-const { getUser, changePassword } = require("../db");
+const {
+  getUser,
+  changePassword,
+  removeToken,
+  removeSession,
+  removeAllTokensExceptThisOne,
+} = require("../db");
 const jwtAuthenticate = require("../middlewares/jwtAuthenticate");
 const validator = require("../middlewares/validator");
+const checkQueryResult = require("../utils/checkQueryResult");
 const Router = express.Router();
 const {
   createAccountSchema,
@@ -11,6 +18,7 @@ const {
   saveNumberSchema,
   checkOtpSchema,
   changePasswordSchema,
+  logoutSchema,
 } = require("../validationSchemas/authApisSchemas");
 
 Router.use(jwtAuthenticate);
@@ -21,16 +29,21 @@ Router.use((req, res, next) => {
   } else if (res.locals.jwtAuthentication.status != 200) {
     res
       .status(res.locals.jwtAuthentication.status)
-      .json({ success: 0, msg: res.locals.jwtAuthentication });
+      .json({ success: 0, msg: res.locals.jwtAuthentication.msg });
   } else {
     res
       .status(res.locals.jwtAuthentication.status)
-      .json({ success: 0, msg: "Bad token" });
+      .json({ success: 0, msg: "Bad token, please login and try again" });
   }
 });
 
 const addChangePasswordSchema = (req, res, next) => {
   res.locals.schema = changePasswordSchema;
+  next();
+};
+
+const addLogoutSchema = (req, res, next) => {
+  res.locals.schema = logoutSchema;
   next();
 };
 
@@ -57,6 +70,7 @@ Router.post(
       let email = req.body.email;
       let password = req.body.password;
       let newPassword = req.body.newPassword;
+      let token = res.locals.jwtAuthentication.token;
       let data = {};
       data.success = 0;
       let userDetails = await getUser(email);
@@ -74,6 +88,16 @@ Router.post(
             data.success = 1;
             data.msg = res.locals.translate("Password updated successfully");
             //check session store and remove all the sessions of this email excluding the one with same session id
+            let removeAllTokensExceptThisOneResult =
+              await removeAllTokensExceptThisOne(email, token);
+              //
+            if (checkQueryResult(removeAllTokensExceptThisOneResult)) {
+              data.success = 1;
+              data.msg = res.locals.translate("Password updated successfully");
+            }else{
+              data.success = 0;
+              data.msg = res.locals.translate("Error Occurred, please try later");
+            }
           } else {
             data.msg = res.locals.translate("Error Occurred, please try later");
           }
@@ -88,5 +112,23 @@ Router.post(
     }
   }
 );
+
+Router.post("/logout", addLogoutSchema, validator, async (req, res, next) => {
+  try {
+    let token = res.locals.jwtAuthentication.token;
+    let email = req.body.email;
+    let data = { success: 0, msg: "an error occurred" };
+    let removeTokenResult = await removeToken(email, token, req.sessionID);
+    if (checkQueryResult(removeTokenResult)) {
+      req.session.destroy();
+      data.success = 1;
+      data.msg = res.locals.translate("logged out successfully");
+    }
+    res.json(data);
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
 
 module.exports = Router;

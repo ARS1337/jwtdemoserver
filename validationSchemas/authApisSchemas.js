@@ -42,6 +42,10 @@ const changePasswordSchema = Joi.object({
   newPassword: Joi.string().required().min(8).max(30),
 });
 
+const logoutSchema = Joi.object({
+  email: Joi.string().required().email(),
+});
+
 module.exports = {
   createAccountSchema,
   loginSchema,
@@ -50,4 +54,5 @@ module.exports = {
   saveNumberSchema,
   checkOtpSchema,
   changePasswordSchema,
+  logoutSchema
 };

@@ -15,5 +15,7 @@
   "Email doesn't match": "गलत ईमेल",
   "Please Enter your correct password": "कृपया अपना सही पासवर्ड दर्ज करें",
   "Password updated successfully": "पासवर्ड सफलतापूर्वक अपडेट किया गया।",
-  "User not found": "यूसर्नेम नहीं मिला"
+  "User not found": "यूसर्नेम नहीं मिला",
+  "can't generate token":"लॉगिन विफल, कृपया बाद में प्रयास करें",
+  "logged out successfully":"लॉग आउट सफल"
 }

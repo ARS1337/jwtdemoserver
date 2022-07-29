@@ -14,5 +14,7 @@
     "Email doesn't match":"Email doesn't match",
     "Please Enter your correct password":"Please Enter your correct password",
     "Password updated successfully":"Password updated successfully",
-    "User not found":"User not found"
+    "User not found":"User not found",
+    "can't generate token":"Can't generate token",
+    "logged out successfully":"Logged out successfully"
 }
