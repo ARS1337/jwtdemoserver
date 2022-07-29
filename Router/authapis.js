@@ -1,6 +1,12 @@
 const express = require("express");
 const Router = express.Router();
-const { getUser, addUser, resetPassword, changePassword } = require("../db.js");
+const {
+  getUser,
+  addUser,
+  resetPassword,
+  changePassword,
+  addToken,
+} = require("../db.js");
 const i18n = require("../i18n.js");
 const jwt = require("jsonwebtoken");
 const {
@@ -13,6 +19,11 @@ const {
   changePasswordSchema,
 } = require("../validationSchemas/authApisSchemas");
 const validator = require("../middlewares/validator");
+const {
+  currentTimestamp,
+  timestamp30MinsForward,
+  timestamp24HoursForward,
+} = require("../utils/customMoment");
 
 const generateAccessToken = (username) => {
   return jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: "1800s" });
@@ -47,8 +58,6 @@ const addResetPasswordSchema = (req, res, next) => {
   res.locals.schema = resetPasswordSchema;
   next();
 };
-
-
 
 Router.post(
   "/createAccount",
@@ -127,9 +136,22 @@ Router.post("/login", addLoginSchema, validator, async (req, res, next) => {
       } else if (userExits && userExits?.rows[0].password != password) {
         data.msg = res.locals.translate("wrong password");
       } else {
-        data.token = generateAccessToken({ user: email });
-        data.success = 1;
-        data.msg = res.locals.translate("login success");
+        let token = generateAccessToken({ user: email });
+        let queryResult = await addToken(
+          email,
+          token,
+          req.sessionID,
+          timestamp24HoursForward()
+        );
+        if (queryResult && queryResult?.rows && queryResult?.rows?.length > 0) {
+          data.token = token;
+          data.success = 1;
+          data.msg = res.locals.translate("login success");
+          req.session.email=email
+        } else {
+          data.success = 0;
+          data.msg = res.locals.translate("can't generate token");
+        }
       }
     } else {
       data.msg = res.locals.translate("User not found");
@@ -147,8 +169,10 @@ Router.post(
   async (req, res) => {
     try {
       req.session.telno = req.body.telno;
+      let prefix = req.body.prefix
       let otp = Math.floor(100000 + Math.random() * 900000);
       req.session.otp = otp;
+      //call the api to send otp via sms here
       console.log("otp is : ", otp);
       res.json({ success: 1 });
     } catch (err) {

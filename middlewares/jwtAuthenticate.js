@@ -1,27 +1,38 @@
 const jwt = require("jsonwebtoken");
+const { getToken } = require("../db");
+const checkQueryResult = require("../utils/checkQueryResult");
 
-const jwtAuthenticate = (req, res, next) => {
+const jwtAuthenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-    let data = { success: 0 };
+    let tokenQueryResult = await getToken(token);
+    let isTokenValid = checkQueryResult(tokenQueryResult);
+    let data = { success: 0, token: token };
     res.locals.jwtAuthentication = data;
 
-    if (token == null) {
-      data.status = 401;
+    if (token == null || !isTokenValid) {
+      data.status = 200;
+      data.msg='Unauthorized request, please login and try again'
       return next();
     }
 
-    jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+    jwt.verify(token, process.env.TOKEN_SECRET, async (err, user) => {
       // console.log("error while verifying: ",err)
+
       if (err) {
         data.status = 403;
         data.err = err;
         data.success = 0;
-        if (err?.message && (err.message == "invalid signature" || err.message == "jwt malformed" ||err.message == "invalid token")) {
+        if (
+          err?.message &&
+          (err.message == "invalid signature" ||
+            err.message == "jwt malformed" ||
+            err.message == "invalid token")
+        ) {
           data.status = 200;
           data.success = 0;
-        }  else {
+        } else {
           return next(err);
         }
       } else {
@@ -33,7 +44,7 @@ const jwtAuthenticate = (req, res, next) => {
     res.locals.jwtAuthentication = data;
     next();
   } catch (err) {
-    console.log("catch err",err);
+    console.log("catch err", err);
     next(err);
   }
 };

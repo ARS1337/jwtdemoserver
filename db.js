@@ -1,3 +1,4 @@
+const session = require("express-session");
 const { Pool } = require("pg");
 
 var pool;
@@ -16,7 +17,10 @@ const runQuery = async (query) => {
   let res = await pool
     .query(query)
     .then((r) => r)
-    .catch((err) => console.log("error for query : ", query));
+    .catch((err) => {
+      console.log("error for query : ", query);
+      console.log(err);
+    });
   return res;
 };
 
@@ -44,4 +48,59 @@ const changePassword = async (newPassword, email) => {
   return res;
 };
 
-module.exports = { connect, getUser, addUser, resetPassword, changePassword };
+const addToken = async (email, token, session_id, expiry_timestamp) => {
+  let query = `insert into user_tokens(email,token,session_id,expiry_timestamp) values('${email}','${token}','${session_id}','${expiry_timestamp}') returning id`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const removeToken = async (email, token, session_id) => {
+  let query = `delete from user_tokens where email='${email}' and token='${token}' and session_id='${session_id}' returning id`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const removeSession = async (session_id) => {
+  let query = `delete from user_session where sid = '${session_id}' returning sid`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const getToken = async (token) => {
+  let query = `select * from user_tokens where token ='${token}' ;`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const getAllTokensForEmail = async (email) => {
+  let query = `select token from user_tokens where email='${email}' `;
+  let res = await runQuery(query);
+  return res;
+};
+
+const removeAllTokensExceptThisOne = async (email, token) => {
+  let query = `delete from user_tokens where email='${email}' and token != '${token}' returning id`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const getAllSessionIdForEmail = async (email, current_session_id) => {
+  let query = `select sid from user_session where sess->>'email'= '${email}' and sid !='${current_session_id}'`;
+  let res = await runQuery(query);
+  return res;
+};
+
+module.exports = {
+  connect,
+  getUser,
+  addUser,
+  resetPassword,
+  changePassword,
+  addToken,
+  removeToken,
+  removeSession,
+  getToken,
+  getAllTokensForEmail,
+  removeAllTokensExceptThisOne,
+  getAllSessionIdForEmail,
+};
