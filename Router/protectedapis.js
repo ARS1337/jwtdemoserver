@@ -90,15 +90,18 @@ Router.post(
             //check session store and remove all the sessions of this email excluding the one with same session id
             let removeAllTokensExceptThisOneResult =
               await removeAllTokensExceptThisOne(email, token);
-              //
-            if (checkQueryResult(removeAllTokensExceptThisOneResult)) {
+            //
+            if (removeAllTokensExceptThisOneResult?.rows) {
               data.success = 1;
               data.msg = res.locals.translate("Password updated successfully");
-            }else{
+            } else {
               data.success = 0;
-              data.msg = res.locals.translate("Error Occurred, please try later");
+              data.msg = res.locals.translate(
+                "Error Occurred, please try later"
+              );
             }
           } else {
+            console.log("failed to change password");
             data.msg = res.locals.translate("Error Occurred, please try later");
           }
         }

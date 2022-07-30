@@ -13,7 +13,7 @@ const jwtAuthenticate = async (req, res, next) => {
 
     if (token == null || !isTokenValid) {
       data.status = 200;
-      data.msg='Unauthorized request, please login and try again'
+      data.msg = "Unauthorized request, please login and try again";
       return next();
     }
 
@@ -28,7 +28,8 @@ const jwtAuthenticate = async (req, res, next) => {
           err?.message &&
           (err.message == "invalid signature" ||
             err.message == "jwt malformed" ||
-            err.message == "invalid token")
+            err.message == "invalid token" ||
+            err.message == "jwt expired")
         ) {
           data.status = 200;
           data.success = 0;

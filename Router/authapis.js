@@ -147,7 +147,7 @@ Router.post("/login", addLoginSchema, validator, async (req, res, next) => {
           data.token = token;
           data.success = 1;
           data.msg = res.locals.translate("login success");
-          req.session.email=email
+          req.session.email = email;
         } else {
           data.success = 0;
           data.msg = res.locals.translate("can't generate token");
@@ -169,7 +169,7 @@ Router.post(
   async (req, res) => {
     try {
       req.session.telno = req.body.telno;
-      let prefix = req.body.prefix
+      let prefix = req.body.prefix;
       let otp = Math.floor(100000 + Math.random() * 900000);
       req.session.otp = otp;
       //call the api to send otp via sms here
