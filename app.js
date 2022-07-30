@@ -12,14 +12,18 @@ const connectionDetails = require("./pgDBconnectionDetails");
 const authApisRouter = require("./Router/authapis");
 const { default: helmet } = require("helmet");
 const translator = require("./middlewares/translator.js");
-const { timestamp30MinsForward } = require("./utils/customMoment.js");
-const { default: axios } = require("axios");
 const pgPool = new pg.Pool(connectionDetails);
+const disableTraceRequests = require('./middlewares/disableTraceRequests')
 
 dotenv.config();
 
+//disable powered-by header 
 app.disable('x-powered-by')
+//sets security headers
 app.use(helmet())
+
+//disable trace request
+app.use(disableTraceRequests)
 
 app.use(
   cors({
@@ -34,6 +38,8 @@ app.use(
     store: new pgSession({
       pool: pgPool,
       tableName: "user_session",
+      ttl : 12*60*60,//session will live for 12 hours in db
+      pruneSessionInterval :8*60*60 // expired sessions will be deleted from db after 8 hours
     }),
     saveUninitialized: true,
     resave:false,
@@ -44,7 +50,8 @@ app.use(
     secure: false,
     name:"anotherNumber",
     cookie:{
-      maxAge:0.01666666666*60*60*1000
+      maxAge:0.01666666666*60*60*1000,
+      httpOnly:false,
     }
   })
 );
@@ -55,7 +62,6 @@ app.use(express.urlencoded({ extended: true }));
 //translator middleware
 app.use(translator)
 
-
 app.get("/", (req, res) => {
   res.send("welcome");
 });
@@ -64,10 +70,12 @@ app.use("/auth", authApisRouter);
 
 app.use("/protectedRoute", protectedRouter);
 
+//404 handler
 app.use((req, res, next) => {
   res.status(404).send({success:0,msg:"Sorry can't find that!"})
 })
 
+//500 handler
 app.use((err, req, res, next) => {
   console.error(err.stack)
   res.status(500).send({success:0,msg:'Something broke!'})
@@ -75,7 +83,5 @@ app.use((err, req, res, next) => {
 
 app.listen(3001, async (req, res) => {
   await connect();
-  let r = await getAllSessionIdForEmail('abhaysingh@gmail.com','4710ad47-48bb-46d5-b027-999f8ca273df')
-  console.log(r)
   console.log("server started");
 });
