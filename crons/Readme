@@ -1,0 +1,4 @@
+all the crons should be listed in this current directory only(/crons)
+cron name in db(tablename is cron_data) and here in /crons should be same
+schedule and cron name is taken from db
+every cron run is logged in cron_log

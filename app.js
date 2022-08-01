@@ -3,17 +3,18 @@ const session = require("express-session");
 const app = express();
 const pgSession = require("connect-pg-simple")(session);
 const pg = require("pg");
-const { connect, getUser, addToken, removeToken, removeSession, getAllSessionIdForEmail } = require("./db.js");
+const { connect, getUser, addToken, removeToken, removeSession,getAllCrons, getAllSessionIdForEmail } = require("./db.js");
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
 const dotenv = require("dotenv");
 const protectedRouter = require("./Router/protectedapis");
-const connectionDetails = require("./pgDBconnectionDetails");
+const connectionDetails = require("./PostGresConnectionPool");
 const authApisRouter = require("./Router/authapis");
 const { default: helmet } = require("helmet");
 const translator = require("./middlewares/translator.js");
-const pgPool = new pg.Pool(connectionDetails);
+const pgPool = require('./PostGresConnectionPool')
 const disableTraceRequests = require('./middlewares/disableTraceRequests')
+const cronRunner = require('./crons/cronRunner')
 
 dotenv.config();
 
@@ -82,6 +83,7 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(3001, async (req, res) => {
-  await connect();
+  //start crons
+  cronRunner()
   console.log("server started");
 });

@@ -101,7 +101,6 @@ Router.post(
               );
             }
           } else {
-            console.log("failed to change password");
             data.msg = res.locals.translate("Error Occurred, please try later");
           }
         }

@@ -1,3 +1,5 @@
+const pg = require("pg");
+
 const connectionDetails = {
   //postgres connection details
   host: "localhost",
@@ -6,4 +8,6 @@ const connectionDetails = {
   user: "postgres",
 };
 
-module.exports = connectionDetails;
+const pgPool = new pg.Pool(connectionDetails);
+
+module.exports = pgPool;

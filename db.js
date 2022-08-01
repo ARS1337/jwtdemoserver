@@ -1,17 +1,5 @@
 const session = require("express-session");
-const { Pool } = require("pg");
-
-var pool;
-
-const connect = () => {
-  pool = new Pool({
-    user: "postgres",
-    host: "localhost",
-    port: 5432,
-    password: "admin",
-    database: "postgres",
-  });
-};
+const pool = require("./PostGresConnectionPool");
 
 const runQuery = async (query) => {
   let res = await pool
@@ -57,6 +45,7 @@ const addToken = async (email, token, session_id, expiry_timestamp) => {
 const removeToken = async (email, token, session_id) => {
   let query = `delete from user_tokens where email='${email}' and token='${token}' and session_id='${session_id}' returning id`;
   let res = await runQuery(query);
+  console.log(query);
   return res;
 };
 
@@ -90,8 +79,33 @@ const getAllSessionIdForEmail = async (email, current_session_id) => {
   return res;
 };
 
+const getAllCrons = async () => {
+  let query = `select * from cron_data`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const removeExpiredToken = async (currDate) => {
+  let query = `delete from user_tokens where expiry_timestamp < '${currDate}' returning id`;
+  let res = await runQuery(query);
+  return res;
+};
+
+const addCronLog = async (
+  name,
+  run_start_timestamp,
+  run_end_timestamp,
+  success,
+  msg
+) => {
+  let query = `insert into cron_log (name,run_start_timestamp,run_end_timestamp,success,msg) values (
+    '${name}','${run_start_timestamp}','${run_end_timestamp}','${success}','${msg}'
+  )`;
+  let res = await runQuery(query);
+  return res;
+};
+
 module.exports = {
-  connect,
   getUser,
   addUser,
   resetPassword,
@@ -103,4 +117,7 @@ module.exports = {
   getAllTokensForEmail,
   removeAllTokensExceptThisOne,
   getAllSessionIdForEmail,
+  getAllCrons,
+  removeExpiredToken,
+  addCronLog,
 };
