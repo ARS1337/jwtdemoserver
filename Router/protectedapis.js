@@ -9,6 +9,7 @@ const {
 const jwtAuthenticate = require("../middlewares/jwtAuthenticate");
 const validator = require("../middlewares/validator");
 const checkQueryResult = require("../utils/checkQueryResult");
+const returnHash = require("../utils/hash");
 const Router = express.Router();
 const {
   createAccountSchema,
@@ -69,7 +70,9 @@ Router.post(
     try {
       let email = req.body.email;
       let password = req.body.password;
+      let passwordHash = await returnHash(password);
       let newPassword = req.body.newPassword;
+      let newPasswordHash = await returnHash(newPassword);
       let token = res.locals.jwtAuthentication.token;
       let data = {};
       data.success = 0;
@@ -79,10 +82,10 @@ Router.post(
         userData = userDetails?.rows[0];
         if (email !== userData.email) {
           data.msg = res.locals.translate("Email doesn't match");
-        } else if (userData.password !== password) {
+        } else if (userData.password !== passwordHash) {
           data.msg = res.locals.translate("Please Enter your correct password");
         } else {
-          let updateResult = await changePassword(newPassword, email);
+          let updateResult = await changePassword(newPasswordHash, email);
           if (updateResult && updateResult?.rows[0]) {
             console.log(updateResult?.rows[0].id);
             data.success = 1;

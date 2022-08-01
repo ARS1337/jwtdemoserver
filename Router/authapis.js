@@ -24,6 +24,7 @@ const {
   timestamp30MinsForward,
   timestamp24HoursForward,
 } = require("../utils/customMoment");
+const returnHash = require("../utils/hash.js");
 
 const generateAccessToken = (username) => {
   return jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: "1800s" });
@@ -63,12 +64,13 @@ Router.post(
   "/createAccount",
   addCreateAccountSchema,
   validator,
-  async (req, res) => {
+  async (req, res,next) => {
     try {
       const first_name = req.body.first_name;
       const last_name = req.body.last_name;
       const email = req.body.email;
       const password = req.body.password;
+      let passwordHash = await returnHash(password);
       const policyAccepted = req.body.policyAccepted;
       let data = {};
       let userExits = await getUser(email);
@@ -84,7 +86,7 @@ Router.post(
           "User already exists. Try different email"
         );
       } else {
-        let isUserAdded = await addUser(first_name, last_name, email, password);
+        let isUserAdded = await addUser(first_name, last_name, email, passwordHash);
         if (isUserAdded.rows[0].id) {
           data.success = 1;
           data.msg = res.locals.translate("User added successfully!");
@@ -126,14 +128,15 @@ Router.post(
 Router.post("/login", addLoginSchema, validator, async (req, res, next) => {
   try {
     const email = req.body.email;
-    const password = req.body.password;
+    let password = req.body.password;
+    let passwordHash = await returnHash(password)
     let data = {};
     data.success = 0;
     let userExits = await getUser(email);
     if (userExits && userExits?.rows && userExits?.rows?.length > 0) {
       if (userExits && userExits?.rows[0].email != email) {
         data.msg = res.locals.translate("User not found");
-      } else if (userExits && userExits?.rows[0].password != password) {
+      } else if (userExits && userExits?.rows[0].password != passwordHash) {
         data.msg = res.locals.translate("wrong password");
       } else {
         let token = generateAccessToken({ user: email });
@@ -204,15 +207,16 @@ Router.post(
   "/forgotPassword/resetPassword",
   addResetPasswordSchema,
   validator,
-  async (req, res) => {
+  async (req, res,next) => {
     try {
       let telno = req.session.telno;
       let password = req.body.password;
+      let passwordHash = await returnHash(password) 
       let confirmPassword = req.body.confirmPassword;
       let data = {};
       if (password === confirmPassword) {
         data.success = 0;
-        let result = await resetPassword(password, telno);
+        let result = await resetPassword(passwordHash, telno);
         if (result && result?.rows[0]) {
           data.success = 1;
         }
