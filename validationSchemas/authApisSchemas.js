@@ -23,12 +23,12 @@ const doesUserExistSchema = Joi.object({
 });
 
 const saveNumberSchema = Joi.object({
-  telno: Joi.number().required().min(0000000000).max(9999999999),
-  prefix: Joi.string().required().min(3).max(3),
+  telno: Joi.string().required().length(10),
+  prefix: Joi.string().required().length(3),
 });
 
 const checkOtpSchema = Joi.object({
-  otp: Joi.number().required().min(000000).max(999999),
+  otp: Joi.string().required().length(6),
 });
 
 const resetPasswordSchema = Joi.object({
