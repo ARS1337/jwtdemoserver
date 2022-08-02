@@ -16,5 +16,7 @@
     "Password updated successfully":"Password updated successfully",
     "User not found":"User not found",
     "can't generate token":"Can't generate token",
-    "logged out successfully":"Logged out successfully"
+    "logged out successfully":"Logged out successfully",
+    "Too many attempts":"Too many attempts please try again later",
+    "Please enter your number and try again":"Please enter your number and try again"
 }

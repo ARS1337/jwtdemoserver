@@ -16,6 +16,8 @@
   "Please Enter your correct password": "कृपया अपना सही पासवर्ड दर्ज करें",
   "Password updated successfully": "पासवर्ड सफलतापूर्वक अपडेट किया गया।",
   "User not found": "यूसर्नेम नहीं मिला",
-  "can't generate token":"लॉगिन विफल, कृपया बाद में प्रयास करें",
-  "logged out successfully":"लॉग आउट सफल"
+  "can't generate token": "लॉगिन विफल, कृपया बाद में प्रयास करें",
+  "logged out successfully": "लॉग आउट सफल",
+  "Too many attempts": "बहुत अधिक प्रयास किए। बाद में पुन: प्रयास करें",
+  "Please enter your number and try again":"कृपया अपना नंबर दर्ज करें और पुनः प्रयास करें"
 }

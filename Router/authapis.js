@@ -64,7 +64,7 @@ Router.post(
   "/createAccount",
   addCreateAccountSchema,
   validator,
-  async (req, res,next) => {
+  async (req, res, next) => {
     try {
       const first_name = req.body.first_name;
       const last_name = req.body.last_name;
@@ -86,7 +86,12 @@ Router.post(
           "User already exists. Try different email"
         );
       } else {
-        let isUserAdded = await addUser(first_name, last_name, email, passwordHash);
+        let isUserAdded = await addUser(
+          first_name,
+          last_name,
+          email,
+          passwordHash
+        );
         if (isUserAdded.rows[0].id) {
           data.success = 1;
           data.msg = res.locals.translate("User added successfully!");
@@ -129,7 +134,7 @@ Router.post("/login", addLoginSchema, validator, async (req, res, next) => {
   try {
     const email = req.body.email;
     let password = req.body.password;
-    let passwordHash = await returnHash(password)
+    let passwordHash = await returnHash(password);
     let data = {};
     data.success = 0;
     let userExits = await getUser(email);
@@ -172,10 +177,12 @@ Router.post(
   async (req, res) => {
     try {
       req.session.telno = req.body.telno;
+      req.session.otpEnterAttempts = 0;
       let prefix = req.body.prefix;
       let otp = Math.floor(100000 + Math.random() * 900000);
       req.session.otp = otp;
       //call the api to send otp via sms here
+      req.session.noOfOTPsSent = 1;
       console.log("otp is : ", otp);
       res.json({ success: 1 });
     } catch (err) {
@@ -194,8 +201,22 @@ Router.post(
       let receivedOtp = req.body.otp;
       if (String(receivedOtp) === String(req.session.otp))
         res.json({ success: 1 });
-      else
-        res.json({ success: 0, msg: res.locals.translate("OTP didn't match") });
+      else {
+        req.session.otpEnterAttempts = req.session.otpEnterAttempts + 1;
+        if (req.session.otpEnterAttempts > 3) {
+          req.session.destroy();
+          res.json({
+            success: 0,
+            msg: res.locals.translate("Too many attempts"),
+            redirectTo: "login",
+          });
+        } else {
+          res.json({
+            success: 0,
+            msg: res.locals.translate("OTP didn't match"),
+          });
+        }
+      }
     } catch (err) {
       console.log(err);
       next(err);
@@ -203,15 +224,43 @@ Router.post(
   }
 );
 
+Router.post("/forgotPassword/getNewOtp", async (req, res, next) => {
+  try {
+    console.log(req.sessionID  )
+    if (req.sessionID && req.session.noOfOTPsSent) {
+      let otp = Math.floor(100000 + Math.random() * 900000);
+      req.session.otp = otp;
+      req.session.noOfOTPsSent = req.session.noOfOTPsSent + 1;
+      console.log("otps send ", req.session.noOfOTPsSent);
+      if (req.session.noOfOTPsSent > 10) {
+        req.session.destroy();
+        res.json({
+          success: 0,
+          msg: res.locals.translate("Too many attempts"),
+        });
+      } else {
+        console.log("otp is : ", otp);
+        //call api to send otp to phone number
+        res.json({ success: 1, msg: "Another OTP sent!" });
+      }
+    }else{
+      res.json({success:0,msg:res.locals.translate("Please enter your number and try again")})
+    }
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
 Router.post(
   "/forgotPassword/resetPassword",
   addResetPasswordSchema,
   validator,
-  async (req, res,next) => {
+  async (req, res, next) => {
     try {
       let telno = req.session.telno;
       let password = req.body.password;
-      let passwordHash = await returnHash(password) 
+      let passwordHash = await returnHash(password);
       let confirmPassword = req.body.confirmPassword;
       let data = {};
       if (password === confirmPassword) {

@@ -45,7 +45,6 @@ const addToken = async (email, token, session_id, expiry_timestamp) => {
 const removeToken = async (email, token, session_id) => {
   let query = `delete from user_tokens where email='${email}' and token='${token}' and session_id='${session_id}' returning id`;
   let res = await runQuery(query);
-  console.log(query);
   return res;
 };
 
