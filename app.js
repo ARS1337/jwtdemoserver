@@ -3,6 +3,7 @@ const session = require("express-session");
 const app = express();
 const pgSession = require("connect-pg-simple")(session);
 const pg = require("pg");
+const compression = require('compression')
 const { connect, getUser, addToken, removeToken, removeSession,getAllCrons, getAllSessionIdForEmail } = require("./db.js");
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
@@ -25,6 +26,8 @@ app.use(helmet())
 
 //disable trace request
 app.use(disableTraceRequests)
+
+app.use(compression())
 
 app.use(
   cors({
