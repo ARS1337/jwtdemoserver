@@ -12,7 +12,7 @@ const jwtAuthenticate = async (req, res, next) => {
     res.locals.jwtAuthentication = data;
 
     if (token == null || !isTokenValid) {
-      data.status = 200;
+      data.status = 401;
       data.msg = "Unauthorized request, please login and try again";
       return next();
     }
@@ -31,7 +31,7 @@ const jwtAuthenticate = async (req, res, next) => {
             err.message == "invalid token" ||
             err.message == "jwt expired")
         ) {
-          data.status = 200;
+          data.status = 403;
           data.success = 0;
         } else {
           return next(err);

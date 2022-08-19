@@ -87,6 +87,6 @@ app.use((err, req, res, next) => {
 
 app.listen(3001, async (req, res) => {
   //start crons
-  cronRunner()
+  // cronRunner()
   console.log("server started");
 });
